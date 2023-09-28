@@ -1,0 +1,1 @@
+Implement [SYN flood Ddos defense Avant-guard algorithm](https://www.researchgate.net/publication/266654737_AVANT-GUARD_scalable_and_vigilant_switch_flow_management_in_software-defined_networks) in OVS. Algorithms added in ofproto/connmgr.c. I will try to merge OVS algorithm repos into branches of only OVS repo.
