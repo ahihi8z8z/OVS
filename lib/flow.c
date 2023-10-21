@@ -774,6 +774,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     ovs_be16 dl_type = OVS_BE16_MAX;
     uint8_t nw_frag, nw_tos, nw_ttl, nw_proto;
     uint8_t *ct_nw_proto_p = NULL;
+    ovs_be16 nw_id = 0; /* Hai mod*/
     ovs_be16 ct_tp_src = 0, ct_tp_dst = 0;
 
     /* Metadata. */
@@ -902,6 +903,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
 
         miniflow_push_be32(mf, ipv6_label, 0); /* Padding for IPv4. */
 
+        nw_id = nh->ip_id; /*Hai mod*/
         nw_tos = nh->ip_tos;
         nw_ttl = nh->ip_ttl;
         nw_proto = nh->ip_proto;
@@ -1001,6 +1003,11 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     packet->l4_ofs = (char *)data - frame;
     miniflow_push_be32(mf, nw_frag,
                        bytes_to_be32(nw_frag, nw_tos, nw_ttl, nw_proto));
+    /*Hai mod*/
+    miniflow_pad_from_64(mf,nw_id); // Add 64 bits field here to don't break old alginment logic
+    miniflow_push_be16(mf, nw_id, nw_id); 
+    miniflow_pad_to_64(mf,nw_id); 
+    /*End mod*/
 
     if (OVS_LIKELY(!(nw_frag & FLOW_NW_FRAG_LATER))) {
         if (OVS_LIKELY(nw_proto == IPPROTO_TCP)) {
@@ -1967,6 +1974,7 @@ flow_wildcards_init_for_packet(struct flow_wildcards *wc,
     WC_MASK_FIELD(wc, ct_nw_proto);
     WC_MASK_FIELD(wc, ct_tp_src);
     WC_MASK_FIELD(wc, ct_tp_dst);
+    WC_MASK_FIELD(wc, nw_id); /*Hai mod*/
 
     /* No transport layer header in later fragments. */
     if (!(flow->nw_frag & FLOW_NW_FRAG_LATER) &&

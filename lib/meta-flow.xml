@@ -4119,7 +4119,12 @@ r r c c c.
       listen for <code>OFPR_INVALID_TTL</code> ``packet-in'' messages via
       OpenFlow.
     </field>
-
+    
+    <field id="MFF_IP_ID" title="IPv4 Identification">
+      This field uses to match tunnel packets which identification is hash from
+      inner ip. This can use to routing tunnel traffic.  Hai mod. 
+    </field>
+    
     <field id="MFF_IP_FRAG" title="IPv4/v6 Fragment Bitmask">
       <p>
         Specifies what kinds of IP fragments or non-fragments to match.  The

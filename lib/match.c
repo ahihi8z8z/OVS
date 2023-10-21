@@ -987,6 +987,14 @@ match_set_nw_ttl(struct match *match, uint8_t nw_ttl)
     match->flow.nw_ttl = nw_ttl;
 }
 
+/*Hai mod*/
+void
+match_set_nw_id(struct match *match, ovs_be16 nw_id)
+{
+    match->wc.masks.nw_id = OVS_BE16_MAX;
+    match->flow.nw_id = nw_id;
+}
+
 void
 match_set_nw_tos_masked(struct match *match, uint8_t nw_tos, uint8_t mask)
 {
@@ -1717,6 +1725,11 @@ match_format(const struct match *match,
     if (wc->masks.nw_ttl) {
         ds_put_format(s, "%snw_ttl=%s%d,",
                       colors.param, colors.end, f->nw_ttl);
+    }
+/*Hai mod*/
+    if (wc->masks.nw_id) {
+        ds_put_format(s, "%snw_id=%s%#"PRIx16",",
+                      colors.param, colors.end, f->nw_id);
     }
     if (wc->masks.mpls_lse[0] & htonl(MPLS_LABEL_MASK)) {
         ds_put_format(s, "%smpls_label=%s%"PRIu32",", colors.param,

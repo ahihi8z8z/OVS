@@ -340,6 +340,9 @@ mf_is_all_wild(const struct mf_field *mf, const struct flow_wildcards *wc)
         return !(wc->masks.nw_tos & IP_ECN_MASK);
     case MFF_IP_TTL:
         return !wc->masks.nw_ttl;
+    /*Hai mod*/
+    case MFF_IP_ID:
+        return !wc->masks.nw_id;
 
     case MFF_ND_TARGET:
         return ipv6_mask_is_any(&wc->masks.nd_target);
@@ -565,6 +568,7 @@ mf_is_value_valid(const struct mf_field *mf, const union mf_value *value)
     case MFF_IPV6_DST:
     case MFF_IP_PROTO:
     case MFF_IP_TTL:
+    case MFF_IP_ID: /*Hai mod*/
     case MFF_ARP_SPA:
     case MFF_ARP_TPA:
     case MFF_ARP_SHA:
@@ -887,6 +891,10 @@ mf_get_value(const struct mf_field *mf, const struct flow *flow,
 
     case MFF_IP_TTL:
         value->u8 = flow->nw_ttl;
+        break;
+    /*Hai mod*/
+    case MFF_IP_ID:
+        value->be16 = flow->nw_id;
         break;
 
     case MFF_IP_FRAG:
@@ -1231,6 +1239,10 @@ mf_set_value(const struct mf_field *mf,
 
     case MFF_IP_TTL:
         match_set_nw_ttl(match, value->u8);
+        break;
+    /*Hai mod*/
+    case MFF_IP_ID:
+        match_set_nw_id(match, value->be16);
         break;
 
     case MFF_IP_FRAG:
@@ -1655,6 +1667,10 @@ mf_set_flow_value(const struct mf_field *mf,
     case MFF_IP_TTL:
         flow->nw_ttl = value->u8;
         break;
+    /*Hai mod*/
+    case MFF_IP_ID:
+        flow->nw_id = value->be16;
+        break;
 
     case MFF_IP_FRAG:
         flow->nw_frag = value->u8 & FLOW_NW_FRAG_MASK;
@@ -1870,6 +1886,7 @@ mf_is_pipeline_field(const struct mf_field *mf)
     case MFF_IP_DSCP_SHIFTED:
     case MFF_IP_ECN:
     case MFF_IP_TTL:
+    case MFF_IP_ID: /*Hai mod*/
     case MFF_IP_FRAG:
     case MFF_ARP_OP:
     case MFF_ARP_SPA:
@@ -2202,6 +2219,11 @@ mf_set_wild(const struct mf_field *mf, struct match *match, char **err_str)
         match->wc.masks.nw_ttl = 0;
         match->flow.nw_ttl = 0;
         break;
+    /*Hai mod*/
+    case MFF_IP_ID:
+        match->wc.masks.nw_id = 0;
+        match->flow.nw_id = 0;
+        break;
 
     case MFF_IP_FRAG:
         match->wc.masks.nw_frag &= ~FLOW_NW_FRAG_MASK;
@@ -2358,6 +2380,7 @@ mf_set(const struct mf_field *mf,
     case MFF_MPLS_TTL:
     case MFF_IP_PROTO:
     case MFF_IP_TTL:
+    case MFF_IP_ID: /*Hai mod*/
     case MFF_IP_DSCP:
     case MFF_IP_DSCP_SHIFTED:
     case MFF_IP_ECN:

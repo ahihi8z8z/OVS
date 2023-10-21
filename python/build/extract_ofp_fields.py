@@ -81,6 +81,8 @@ OXM_CLASSES = {
     # used only to test support for experimenter OXM, since there
     # are barely any real uses of experimenter OXM in the wild.
     "NXOXM_ET_": (0x00002320, 0xFFFF, "extension"),
+    # Hai mod. FIL vendor code for openflow 
+    "FILOXM_ET_": (0x00001337, 0xFFFF, "extension"),
 }
 
 

@@ -364,6 +364,11 @@ enum ofp_raw_action_type {
     /* NX1.0+(50): struct nx_action_delete_field. VLMFF */
     NXAST_RAW_DELETE_FIELD,
 
+    /* FIL1.0+(1): ovs_be16.
+     *
+     * [Hai mod] */
+    FILAST_RAW_SET_IP_ID,
+
 /* ## ------------------ ## */
 /* ## Debugging actions. ## */
 /* ## ------------------ ## */
@@ -468,6 +473,7 @@ ofpact_next_flattened(const struct ofpact *ofpact)
     case OFPACT_SET_IP_DSCP:
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
+    case OFPACT_SET_IP_ID:
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:
@@ -2303,6 +2309,63 @@ check_SET_IP_TTL(const struct ofpact_ip_ttl *a OVS_UNUSED,
 {
     return check_set_ip(cp);
 }
+
+/* Hai mod. Set IPv4 Id actions. */
+
+static enum ofperr
+decode_FILAST_RAW_SET_IP_ID(ovs_be16 id,
+                              enum ofp_version ofp_version OVS_UNUSED,
+                              struct ofpbuf *out)
+{
+    ofpact_put_SET_IP_ID(out)->nw_id = id;
+    return 0;
+}
+
+static void
+encode_SET_IP_ID(const struct ofpact_ip_id *id,
+                  enum ofp_version ofp_version, struct ofpbuf *out)
+{
+    if (ofp_version < OFP12_VERSION) {
+        put_FILAST_SET_IP_ID(out, id->nw_id);
+    } else {
+        // struct mf_subfield dst = { .field = mf_from_id(MFF_IP_ID),
+        //                            .ofs = 0, .n_bits = 16 };
+        // put_reg_load(out, &dst, id->nw_id);
+        put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
+    }
+}
+
+static char * OVS_WARN_UNUSED_RESULT
+parse_SET_IP_ID(char *arg, const struct ofpact_parse_params *pp)
+
+{
+    ovs_be16 id;
+    char *error;
+
+    error = str_to_u16(arg, "ID", &id);
+    if (error) {
+        return error;
+    }
+
+    ofpact_put_SET_IP_ID(pp->ofpacts)->nw_id = id;
+    return NULL;
+}
+
+static void
+format_SET_IP_ID(const struct ofpact_ip_id *a,
+                  const struct ofpact_format_params *fp)
+{
+    ds_put_format(fp->s, "%smod_nw_id:%s%d",
+                  colors.param, colors.end, a->nw_id);
+}
+
+static enum ofperr
+check_SET_IP_ID(const struct ofpact_ip_id *a OVS_UNUSED,
+                 struct ofpact_check_params *cp)
+{
+    return check_set_ip(cp);
+}
+// Hai end mod.
 
 /* Set TCP/UDP/SCTP port actions. */
 
@@ -8012,6 +8075,7 @@ action_set_classify(const struct ofpact *a)
     case OFPACT_SET_IP_DSCP:
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
+    case OFPACT_SET_IP_ID:
     case OFPACT_SET_IPV4_DST:
     case OFPACT_SET_IPV4_SRC:
     case OFPACT_SET_L4_DST_PORT:
@@ -8221,6 +8285,7 @@ ovs_instruction_type_from_ofpact_type(enum ofpact_type type,
     case OFPACT_SET_IP_DSCP:
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
+    case OFPACT_SET_IP_ID: // Hai mod
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:
@@ -9126,6 +9191,7 @@ ofpact_outputs_to_port(const struct ofpact *ofpact, ofp_port_t port)
     case OFPACT_SET_IP_DSCP:
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
+    case OFPACT_SET_IP_ID: // Hai mod
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:

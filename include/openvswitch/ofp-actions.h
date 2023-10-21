@@ -59,6 +59,7 @@ struct vl_mff_map;
  * 4. <NAME>, a quoted string that gives the name of the action, for use in
  *    parsing actions from text.
  */
+// Hai mod. Add SET_IP_TTL
 #define OFPACTS                                                         \
     /* Output. */                                                       \
     OFPACT(OUTPUT,          ofpact_output,      ofpact, "output")       \
@@ -81,6 +82,7 @@ struct vl_mff_map;
     OFPACT(SET_IP_DSCP,     ofpact_dscp,        ofpact, "mod_nw_tos")   \
     OFPACT(SET_IP_ECN,      ofpact_ecn,         ofpact, "mod_nw_ecn")   \
     OFPACT(SET_IP_TTL,      ofpact_ip_ttl,      ofpact, "mod_nw_ttl")   \
+    OFPACT(SET_IP_ID,       ofpact_ip_id,       ofpact, "mod_nw_id")    \
     OFPACT(SET_L4_SRC_PORT, ofpact_l4_port,     ofpact, "mod_tp_src")   \
     OFPACT(SET_L4_DST_PORT, ofpact_l4_port,     ofpact, "mod_tp_dst")   \
     OFPACT(REG_MOVE,        ofpact_reg_move,    ofpact, "move")         \
@@ -505,6 +507,17 @@ struct ofpact_ip_ttl {
     OFPACT_PADDED_MEMBERS(
         struct ofpact ofpact;
         uint8_t ttl;
+    );
+};
+
+/* OFPACT_SET_IP_ID.
+ *
+ * Used for OFPAT_SET_NW_ID. */
+// Hai mod
+struct ofpact_ip_id {
+    OFPACT_PADDED_MEMBERS(
+        struct ofpact ofpact;
+        ovs_be16 nw_id;
     );
 };
 
