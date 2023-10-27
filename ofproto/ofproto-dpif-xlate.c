@@ -7166,8 +7166,8 @@ do_xlate_actions(const struct ofpact *ofpacts, size_t ofpacts_len,
         case OFPACT_SET_IP_ID:
             if (is_ip_any(flow)) {
                 WC_MASK_FIELD(wc, nw_proto);
-                wc->masks.nw_id = 0xff;
-                flow->nw_tos = ofpact_get_SET_IP_ID(a)->nw_id;
+                wc->masks.nw_id = 0xffff;
+                flow->nw_id = ofpact_get_SET_IP_ID(a)->nw_id;
             }
             break;
         // Hai end mod
