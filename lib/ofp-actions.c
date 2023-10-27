@@ -2355,7 +2355,7 @@ static void
 format_SET_IP_ID(const struct ofpact_ip_id *a,
                   const struct ofpact_format_params *fp)
 {
-    ds_put_format(fp->s, "%smod_nw_id:%s%d",
+    ds_put_format(fp->s, "%sset_ip_id:%s%d",
                   colors.param, colors.end, a->nw_id);
 }
 
