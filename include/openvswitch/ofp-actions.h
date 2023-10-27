@@ -59,7 +59,7 @@ struct vl_mff_map;
  * 4. <NAME>, a quoted string that gives the name of the action, for use in
  *    parsing actions from text.
  */
-// Hai mod. Add SET_IP_TTL
+// Hai mod. Add SET_IP_ID
 #define OFPACTS                                                         \
     /* Output. */                                                       \
     OFPACT(OUTPUT,          ofpact_output,      ofpact, "output")       \
