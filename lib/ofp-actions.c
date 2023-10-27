@@ -2326,7 +2326,8 @@ encode_SET_IP_ID(const struct ofpact_ip_id *id,
                   enum ofp_version ofp_version, struct ofpbuf *out)
 {
     if (ofp_version < OFP12_VERSION) {
-        put_FILAST_SET_IP_ID(out, id->nw_id);
+        //put_FILAST_SET_IP_ID(out, id->nw_id);
+        put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
     } else {
         // struct mf_subfield dst = { .field = mf_from_id(MFF_IP_ID),
         //                            .ofs = 0, .n_bits = 16 };
