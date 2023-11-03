@@ -731,6 +731,25 @@ dump_invalid_packet(struct dp_packet *packet, const char *reason)
     ds_destroy(&ds);
 }
 
+// Hai mod
+static void
+custom_dump_packet(struct dp_packet *packet, const char *message)
+{
+    static struct vlog_rate_limit rl = VLOG_RATE_LIMIT_INIT(1, 5);
+    struct ds ds = DS_EMPTY_INITIALIZER;
+    size_t size;
+
+    if (VLOG_DROP_DBG(&rl)) {
+        return;
+    }
+    size = dp_packet_size(packet);
+    ds_put_hex_dump(&ds, dp_packet_data(packet), size, 0, false);
+    VLOG_DBG("Hai mod log with message: %s.\n Packet: %s",
+             message, ds_cstr(&ds));
+    ds_destroy(&ds);
+}
+// Hai end mod
+
 /* Initializes 'dst' from 'packet' and 'md', taking the packet type into
  * account.  'dst' must have enough space for FLOW_U64S * 8 bytes.
  *
