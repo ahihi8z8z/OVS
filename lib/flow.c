@@ -782,6 +782,10 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     /* Add code to this function (or its callees) to extract new fields. */
     BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
 
+    // Hai mod
+    if (OVS_UNLIKELY(VLOG_IS_DBG_ENABLED())) {
+        custom_dump_packet(packet, "full dp_packet");
+    }
     const struct pkt_metadata *md = &packet->md;
     const void *data = dp_packet_data(packet);
     size_t size = dp_packet_size(packet);
