@@ -744,7 +744,7 @@ custom_dump_packet(struct dp_packet *packet, const char *message)
     }
     size = dp_packet_size(packet);
     ds_put_hex_dump(&ds, dp_packet_data(packet), size, 0, false);
-    VLOG_DBG("Hai mod log with message: %s.\n Packet: %s",
+    VLOG_DBG("Hai mod log with message: %s. Packet: \n%s",
              message, ds_cstr(&ds));
     ds_destroy(&ds);
 }
@@ -782,10 +782,10 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     /* Add code to this function (or its callees) to extract new fields. */
     BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
 
-    // Hai mod
-    if (OVS_UNLIKELY(VLOG_IS_DBG_ENABLED())) {
-        custom_dump_packet(packet, "full dp_packet");
-    }
+    // Hai mod => dp_packet is full raw packet which sent to ovs
+    // if (OVS_UNLIKELY(VLOG_IS_DBG_ENABLED())) {
+    //     custom_dump_packet(packet, "full dp_packet");
+    // }
     const struct pkt_metadata *md = &packet->md;
     const void *data = dp_packet_data(packet);
     size_t size = dp_packet_size(packet);
