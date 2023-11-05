@@ -931,6 +931,11 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
         nw_ttl = nh->ip_ttl;
         nw_proto = nh->ip_proto;
         nw_frag = ipv4_get_nw_frag(nh);
+
+        // Hai mod 
+        if (OVS_LIKELY(ip_len == IP_HEADER_LEN + sizeof(struct tun_option))) { // Can optimize matching speed
+            const struct tun_option* opt =  data + IP_HEADER_LEN;
+        }
         data_pull(&data, &size, ip_len);
     } else if (dl_type == htons(ETH_TYPE_IPV6)) {
         const struct ovs_16aligned_ip6_hdr *nh = data;

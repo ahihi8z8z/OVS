@@ -733,6 +733,14 @@ IP_ECN_is_ce(uint8_t dsfield)
 #define IP_IS_FRAGMENT(ip_frag_off) \
         ((ip_frag_off) & htons(IP_MORE_FRAGMENTS | IP_FRAG_OFF_MASK))
 
+
+// Hai mod
+struct tun_option {
+    uint8_t type;
+    uint8_t len;
+    uint16_t value;
+};
+
 #define IP_HEADER_LEN 20
 struct ip_header {
     uint8_t ip_ihl_ver;
