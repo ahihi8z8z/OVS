@@ -162,6 +162,7 @@ static inline void dp_packet_set_allocated(struct dp_packet *, uint16_t);
 
 void *dp_packet_resize_l2(struct dp_packet *, int increment);
 void *dp_packet_resize_l2_5(struct dp_packet *, int increment);
+void *dp_packet_resize_l3(struct dp_packet *, int increment); // Hai mod 
 static inline void *dp_packet_eth(const struct dp_packet *);
 static inline void dp_packet_reset_offsets(struct dp_packet *);
 static inline uint16_t dp_packet_l2_pad_size(const struct dp_packet *);

@@ -492,6 +492,24 @@ dp_packet_resize_l2_5(struct dp_packet *b, int increment)
     return dp_packet_data(b);
 }
 
+/* Adjust the size of the l3 portion of the dp_packet, updating the l3
+ * pointer and the layer offsets.  The caller is responsible for
+ * modifying the contents. Hai mod */
+void *
+dp_packet_resize_l3(struct dp_packet *b, int increment)
+{
+    if (increment >= 0) {
+        dp_packet_push_uninit(b, increment);
+    } else {
+        dp_packet_pull(b, -increment);
+    }
+
+    /* Adjust layer offsets after l2_5. */
+    dp_packet_adjust_layer_offset(&b->l4_ofs, increment);
+
+    return dp_packet_data(b);
+}
+
 /* Adjust the size of the l2 portion of the dp_packet, updating the l2
  * pointer and the layer offsets.  The caller is responsible for
  * modifying the contents. */
