@@ -1290,6 +1290,24 @@ packet_set_ipv6_tc(ovs_16aligned_be32 *flow_label, uint8_t tc)
     put_16aligned_be32(flow_label, new_label);
 }
 
+/* Insert tun_opt into the IPv4 header option. 'packet' must have ip_ihl_ver >= 5
+ * (20 bytes). Because tun_opt is customize options, it can't be add by other devices 
+ * than OVN. By default, tun_opt be always added like the first options. In here, it 
+ * has only a case which packet doesn't have tun_opt. Hai mod.
+ * TO DO: Parsing first ip option and match by option type. */
+void
+packet_set_ipv4_tun_opt(struct dp_packet *packet, ovs_be32 tun_opt) 
+{
+    struct ip_header *nh = dp_packet_l3(packet);
+    struct tun_option* opt =  (struct tun_option*) nh + IP_HEADER_LEN/sizeof( struct tun_option);
+    // Insert 4 bytes option in tail of ip header 
+    dp_packet_resize_l3(packet,4);
+    nh->ip_ihl_ver += 4;
+    nh->ip_tot_len += 4;
+    opt->value = tun_opt;
+    nh->ip_csum = csum(nh,nh->ip_ihl_ver);
+}
+
 /* Modifies the IPv4 header fields of 'packet' to be consistent with 'src',
  * 'dst', 'tos', and 'ttl'.  Updates 'packet''s L4 checksums as appropriate.
  * 'packet' must contain a valid IPv4 packet with correctly populated l[347]

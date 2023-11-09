@@ -482,6 +482,7 @@ struct ovs_key_mpls {
 };
 
 struct ovs_key_ipv4 {
+	__be32 tun_opt;
 	__be32 ipv4_src;
 	__be32 ipv4_dst;
 	__u8   ipv4_proto;

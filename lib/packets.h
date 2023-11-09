@@ -736,9 +736,7 @@ IP_ECN_is_ce(uint8_t dsfield)
 
 // Hai mod
 struct tun_option {
-    uint8_t type;
-    uint8_t len;
-    uint16_t value;
+    ovs_be32 value;
 };
 
 #define IP_HEADER_LEN 20
@@ -1595,6 +1593,7 @@ void *eth_compose(struct dp_packet *, const struct eth_addr eth_dst,
 void *snap_compose(struct dp_packet *, const struct eth_addr eth_dst,
                    const struct eth_addr eth_src,
                    unsigned int oui, uint16_t snap_type, size_t size);
+void packet_set_ipv4_tun_opt(struct dp_packet *,ovs_be32 tun_opt); // Hai mod
 void packet_set_ipv4(struct dp_packet *, ovs_be32 src, ovs_be32 dst, uint8_t tos,
                      uint8_t ttl);
 void packet_set_ipv4_addr(struct dp_packet *packet, ovs_16aligned_be32 *addr,

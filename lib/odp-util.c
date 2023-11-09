@@ -4301,6 +4301,8 @@ format_odp_key_attr__(const struct nlattr *a, const struct nlattr *ma,
         const struct ovs_key_ipv4 *key = nl_attr_get(a);
         const struct ovs_key_ipv4 *mask = ma ? nl_attr_get(ma) : NULL;
 
+        // bool first = true;
+        // format_be32_masked(ds, &first, "tun_opt", key->tun_opt, OVS_BE32_MAX); // hai mod
         format_ipv4(ds, "src", key->ipv4_src, MASK(mask, ipv4_src), verbose);
         format_ipv4(ds, "dst", key->ipv4_dst, MASK(mask, ipv4_dst), verbose);
         format_u8u(ds, "proto", key->ipv4_proto, MASK(mask, ipv4_proto),
@@ -5946,6 +5948,7 @@ parse_odp_key_mask_attr__(struct parse_odp_context *context, const char *s,
     } SCAN_END_ARRAY(OVS_KEY_ATTR_MPLS);
 
     SCAN_BEGIN("ipv4(", struct ovs_key_ipv4) {
+        // SCAN_FIELD("tun_opt=", ipv4, tun_opt); // hai mod
         SCAN_FIELD("src=", ipv4, ipv4_src);
         SCAN_FIELD("dst=", ipv4, ipv4_dst);
         SCAN_FIELD("proto=", u8, ipv4_proto);
@@ -8039,6 +8042,7 @@ commit_mpls_action(const struct flow *flow, struct flow *base,
 static void
 get_ipv4_key(const struct flow *flow, struct ovs_key_ipv4 *ipv4, bool is_mask)
 {
+    // ipv4->tun_opt = flow->tun_opt; // hai mod
     ipv4->ipv4_src = flow->nw_src;
     ipv4->ipv4_dst = flow->nw_dst;
     ipv4->ipv4_proto = flow->nw_proto;
@@ -8050,6 +8054,7 @@ get_ipv4_key(const struct flow *flow, struct ovs_key_ipv4 *ipv4, bool is_mask)
 static void
 put_ipv4_key(const struct ovs_key_ipv4 *ipv4, struct flow *flow, bool is_mask)
 {
+    // flow->tun_opt = ipv4->tun_opt; // hai mod
     flow->nw_src = ipv4->ipv4_src;
     flow->nw_dst = ipv4->ipv4_dst;
     flow->nw_proto = ipv4->ipv4_proto;

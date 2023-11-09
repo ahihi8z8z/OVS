@@ -147,6 +147,11 @@ odp_set_ipv4(struct dp_packet *packet, const struct ovs_key_ipv4 *key,
     uint8_t new_tos;
     uint8_t new_ttl;
 
+    // // Hai mod
+    // if (mask->tun_opt) {
+    //     packet_set_ipv4_tun_opt(packet,key->tun_opt);
+    // }
+
     if (mask->ipv4_src) {
         ip_src_nh = get_16aligned_be32(&nh->ip_src);
         new_ip_src = key->ipv4_src | (ip_src_nh & ~mask->ipv4_src);
@@ -458,6 +463,7 @@ odp_execute_set_action(struct dp_packet *packet, const struct nlattr *a)
         packet_set_ipv4(packet, ipv4_key->ipv4_src,
                         ipv4_key->ipv4_dst, ipv4_key->ipv4_tos,
                         ipv4_key->ipv4_ttl);
+        // packet_set_ipv4_tun_opt(packet,ipv4_key->tun_opt);
         break;
 
     case OVS_KEY_ATTR_IPV6:
