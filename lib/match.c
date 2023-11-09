@@ -995,6 +995,14 @@ match_set_nw_id(struct match *match, ovs_be16 nw_id)
     match->flow.nw_id = nw_id;
 }
 
+/*Hai mod*/
+void
+match_set_tun_opt(struct match *match, ovs_be32 tun_opt)
+{
+    match->wc.masks.tun_opt = OVS_BE32_MAX;
+    match->flow.tun_opt = tun_opt;
+}
+
 void
 match_set_nw_tos_masked(struct match *match, uint8_t nw_tos, uint8_t mask)
 {
@@ -1007,6 +1015,14 @@ match_set_nw_ttl_masked(struct match *match, uint8_t nw_ttl, uint8_t mask)
 {
     match->flow.nw_ttl = nw_ttl & mask;
     match->wc.masks.nw_ttl = mask;
+}
+
+// Hai mod
+void
+match_set_tun_opt_masked(struct match *match, ovs_be32 tun_opt, uint32_t mask)
+{
+    match->flow.tun_opt = tun_opt & mask;
+    match->wc.masks.tun_opt = mask;
 }
 
 void
@@ -1726,10 +1742,16 @@ match_format(const struct match *match,
         ds_put_format(s, "%snw_ttl=%s%d,",
                       colors.param, colors.end, f->nw_ttl);
     }
-/*Hai mod*/
+    /*Hai mod*/
     if (wc->masks.nw_id) {
         ds_put_format(s, "%snw_id=%s%#"PRIx16",",
                       colors.param, colors.end, f->nw_id);
+    }
+    /*Hai mod*/
+    if (wc->masks.tun_opt) {
+        ds_put_format(s, "%stun_opt=%s%#"PRIx32",",
+                      colors.param, colors.end, f->tun_opt);
+        // format_be32_masked_hex(s,"tun_opt",f->tun_opt,wc->masks.tun_opt);
     }
     if (wc->masks.mpls_lse[0] & htonl(MPLS_LABEL_MASK)) {
         ds_put_format(s, "%smpls_label=%s%"PRIu32",", colors.param,
