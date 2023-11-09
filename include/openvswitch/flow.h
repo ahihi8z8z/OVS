@@ -142,7 +142,8 @@ struct flow {
     uint8_t nw_ttl;             /* IP TTL/Hop Limit. */
     uint8_t nw_proto;           /* IP protocol or low 8 bits of ARP opcode. */
     ovs_be16 nw_id;             /* IPv4 identification. Hai mod. */
-    ovs_be16 pad_mod[3];        /* Pad to 64 bits. Hai mod */
+    uint16_t pad4;
+    ovs_be32 tun_opt;           /* Hashed tunnel header option. Hai mod */
     /* L4 (64-bit aligned) */
     struct in6_addr nd_target;  /* IPv6 neighbor discovery (ND) target. */
     struct eth_addr arp_sha;    /* ARP/ND source hardware address. */
@@ -171,7 +172,7 @@ BUILD_ASSERT_DECL(sizeof(struct ovs_key_nsh) % sizeof(uint64_t) == 0);
 //                   == sizeof(struct flow_tnl) + sizeof(struct ovs_key_nsh) + 300
 //                   && FLOW_WC_SEQ == 42);
 
-/*Add 2 bytes of mw_id and 6 bytes pad. Hai mod*/
+/*Add 2 bytes of mw_id, 4 bytes tun_opt and 2 bytes padding. Hai mod*/
 BUILD_ASSERT_DECL(offsetof(struct flow, igmp_group_ip4) + sizeof(uint32_t)
                   == sizeof(struct flow_tnl) + sizeof(struct ovs_key_nsh) + 308
                   && FLOW_WC_SEQ == 42);
