@@ -4125,6 +4125,12 @@ r r c c c.
       inner ip. This can use to routing tunnel traffic.  Hai mod. 
     </field>
     
+    <field id="MFF_IP_TUN_OPT" title="IPv4 Tunnel hashed option">
+      This field is used to match a custom ip option called "hased tun". This option is in 
+      packets which is encapslated, with value is hashed from src_ip + dst_ip + vni of 
+      inner packet. Hai mod. 
+    </field>
+
     <field id="MFF_IP_FRAG" title="IPv4/v6 Fragment Bitmask">
       <p>
         Specifies what kinds of IP fragments or non-fragments to match.  The

@@ -935,7 +935,6 @@ nxm_put_ip(struct nxm_put_ctx *ctx,
                     flow->nw_src, match->wc.masks.nw_src);
         nxm_put_32m(ctx, MFF_IPV4_DST, oxm,
                     flow->nw_dst, match->wc.masks.nw_dst);
-        nxm_put_16(ctx, MFF_IP_ID, oxm, flow->nw_id); /* Hai mod*/
     } else {
         nxm_put_ipv6(ctx, MFF_IPV6_SRC, oxm,
                      &flow->ipv6_src, &match->wc.masks.ipv6_src);
@@ -964,6 +963,13 @@ nxm_put_ip(struct nxm_put_ctx *ctx,
         nxm_put_8(ctx, MFF_IP_TTL, oxm, flow->nw_ttl);
     }
 
+    if (match->wc.masks.nw_id) {
+        nxm_put_16(ctx, MFF_IP_ID, oxm, flow->nw_id); /* Hai mod*/
+    }
+
+    if (match->wc.masks.tun_opt) {
+        nxm_put_32(ctx, MFF_IP_TUN_OPT, oxm, flow->tun_opt); /* Hai mod*/
+    }
     nxm_put_32m(ctx, MFF_IPV6_LABEL, oxm,
                 flow->ipv6_label, match->wc.masks.ipv6_label);
 

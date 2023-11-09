@@ -1357,6 +1357,20 @@ enum OVS_PACKED_ENUM mf_field_id {
      * OXM: FILOXM_ET_IP_ID(1) since v2.8.
      */
     MFF_IP_ID,
+    
+    /* "tun_opt".
+     *
+     * Hashed tunnel header in IPv4 header - Hai mod.
+     *
+     * Type: be32.
+     * Maskable: bitwise.
+     * Formatting: decimal.
+     * Prerequisites: IPv4.
+     * Access: read/write.
+     * NXM: none.
+     * OXM: FILOXM_ET_TUN_OPT(2) since v2.8.
+     */
+    MFF_IP_TUN_OPT,
 
 /* ## ---- ## */
 /* ## IPv6 ## */

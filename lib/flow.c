@@ -732,6 +732,7 @@ dump_invalid_packet(struct dp_packet *packet, const char *reason)
 }
 
 // Hai mod
+#define CUS_DBG 0
 static void
 custom_dump_packet(struct dp_packet *packet, const char *message)
 {
@@ -783,9 +784,9 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
     BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
 
     // Hai mod => dp_packet is full raw packet which sent to ovs
-    // if (OVS_UNLIKELY(VLOG_IS_DBG_ENABLED())) {
-    //     custom_dump_packet(packet, "full dp_packet");
-    // }
+    if (OVS_UNLIKELY(VLOG_IS_DBG_ENABLED())  && CUS_DBG) {
+        custom_dump_packet(packet, "full dp_packet");
+    }
     const struct pkt_metadata *md = &packet->md;
     const void *data = dp_packet_data(packet);
     size_t size = dp_packet_size(packet);
@@ -924,7 +925,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
             }
         }
 
-        miniflow_push_be32(mf, ipv6_label, 0); /* Padding for IPv4. */
+        // miniflow_push_be32(mf, ipv6_label, 0); /* Padding for IPv4. */
 
         nw_id = nh->ip_id; /*Hai mod*/
         nw_tos = nh->ip_tos;
@@ -934,7 +935,10 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
 
         // Hai mod 
         if (OVS_LIKELY(ip_len == IP_HEADER_LEN + sizeof(struct tun_option))) { // Can optimize matching speed
-            const struct tun_option* opt =  data + IP_HEADER_LEN;
+            const struct tun_option* opt =  (struct tun_option*) data + IP_HEADER_LEN/sizeof( struct tun_option);
+            miniflow_push_be32(mf, tun_opt, opt->value);
+        } else {
+            miniflow_push_be32(mf, ipv6_label, 0); /* Padding for IPv4. */
         }
         data_pull(&data, &size, ip_len);
     } else if (dl_type == htons(ETH_TYPE_IPV6)) {
@@ -2003,6 +2007,7 @@ flow_wildcards_init_for_packet(struct flow_wildcards *wc,
     WC_MASK_FIELD(wc, ct_tp_src);
     WC_MASK_FIELD(wc, ct_tp_dst);
     WC_MASK_FIELD(wc, nw_id); /*Hai mod*/
+    WC_MASK_FIELD(wc, tun_opt); // Hai mod
 
     /* No transport layer header in later fragments. */
     if (!(flow->nw_frag & FLOW_NW_FRAG_LATER) &&
@@ -2080,6 +2085,8 @@ flow_wc_map(const struct flow *flow, struct flowmap *map)
         FLOWMAP_SET(map, ct_nw_dst);
         FLOWMAP_SET(map, ct_tp_src);
         FLOWMAP_SET(map, ct_tp_dst);
+        FLOWMAP_SET(map, nw_id); // Hai mod
+        FLOWMAP_SET(map, tun_opt); // Hai mod
 
         if (OVS_UNLIKELY(flow->nw_proto == IPPROTO_IGMP)) {
             FLOWMAP_SET(map, igmp_group_ip4);
