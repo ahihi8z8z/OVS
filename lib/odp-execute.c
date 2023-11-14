@@ -820,6 +820,7 @@ requires_datapath_assistance(const struct nlattr *a)
     case OVS_ACTION_ATTR_PUSH_MPLS:
     case OVS_ACTION_ATTR_POP_MPLS:
     case OVS_ACTION_ATTR_TRUNC:
+    case OVS_ACTION_ATTR_PUSH_TUN_OPT: // hai mod
     case OVS_ACTION_ATTR_PUSH_ETH:
     case OVS_ACTION_ATTR_POP_ETH:
     case OVS_ACTION_ATTR_CLONE:
@@ -1132,6 +1133,15 @@ odp_execute_actions(void *dp, struct dp_packet_batch *batch, bool steal,
         case OVS_ACTION_ATTR_METER:
             /* Not implemented yet. */
             break;
+        // Hai mod
+        case OVS_ACTION_ATTR_PUSH_TUN_OPT: {
+            const struct ovs_action_push_tun_opt *tun_opt = nl_attr_get(a);
+
+            DP_PACKET_BATCH_FOR_EACH (i, packet, batch) {
+                packet_set_ipv4_tun_opt(packet,tun_opt->tun_opt);
+            }
+            break;
+        }
         case OVS_ACTION_ATTR_PUSH_ETH: {
             const struct ovs_action_push_eth *eth = nl_attr_get(a);
 

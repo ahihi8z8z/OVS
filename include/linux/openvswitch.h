@@ -482,7 +482,6 @@ struct ovs_key_mpls {
 };
 
 struct ovs_key_ipv4 {
-	__be32 tun_opt;
 	__be32 ipv4_src;
 	__be32 ipv4_dst;
 	__u8   ipv4_proto;
@@ -899,6 +898,14 @@ enum ovs_ct_attr {
 #define OVS_CT_ATTR_MAX (__OVS_CT_ATTR_MAX - 1)
 
 /*
+ * struct ovs_action_push_tun_opt - %OVS_ACTION_ATTR_PUSH_TUN_OPT action argument.
+ * @tun_opt: tun_opt option value. Hai mod.
+ */
+struct ovs_action_push_tun_opt {
+	__be32 tun_opt;
+};
+
+/*
  * struct ovs_action_push_eth - %OVS_ACTION_ATTR_PUSH_ETH action argument.
  * @addresses: Source and destination MAC addresses.
  */
@@ -1013,6 +1020,8 @@ struct check_pkt_len_arg {
  * is no MPLS label stack, as determined by ethertype, no action is taken.
  * @OVS_ACTION_ATTR_CT: Track the connection. Populate the conntrack-related
  * entries in the flow key.
+ * @OVS_ACTION_ATTR_PUSH_TUN_OPT: Push a new tun_opt option onto the packet's
+ * ip header. Hai mod.
  * @OVS_ACTION_ATTR_PUSH_ETH: Push a new outermost Ethernet header onto the
  * packet.
  * @OVS_ACTION_ATTR_POP_ETH: Pop the outermost Ethernet header off the packet.
@@ -1062,6 +1071,7 @@ enum ovs_action_attr {
 				       * bits. */
 	OVS_ACTION_ATTR_CT,           /* Nested OVS_CT_ATTR_* . */
 	OVS_ACTION_ATTR_TRUNC,        /* u32 struct ovs_action_trunc. */
+	OVS_ACTION_ATTR_PUSH_TUN_OPT,     /* struct ovs_action_push_tun_opt. */
 	OVS_ACTION_ATTR_PUSH_ETH,     /* struct ovs_action_push_eth. */
 	OVS_ACTION_ATTR_POP_ETH,      /* No argument. */
 	OVS_ACTION_ATTR_CT_CLEAR,     /* No argument. */

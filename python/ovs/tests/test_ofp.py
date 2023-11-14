@@ -80,6 +80,10 @@ from ovs.flow.decoders import EthMask, IPMask, decode_mask
             [KeyValue("push_vlan", 0x8100)],
         ),
         (
+            "actions=push_tun_opt:0xde043412",
+            [KeyValue("push_tun_opt", 0xde043412)], # hai mod
+        ),
+        (
             "actions=push_mpls:0x8848",
             [KeyValue("push_mpls", 0x8848)],
         ),

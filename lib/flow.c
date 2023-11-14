@@ -936,6 +936,7 @@ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
         // Hai mod 
         if (OVS_LIKELY(ip_len == IP_HEADER_LEN + sizeof(struct tun_option))) { // Can optimize matching speed
             const struct tun_option* opt =  (struct tun_option*) data + IP_HEADER_LEN/sizeof( struct tun_option);
+            VLOG_DBG("Hai mod. tun_opt field in packet %"PRId32"\n",opt->value);
             miniflow_push_be32(mf, tun_opt, opt->value);
         } else {
             miniflow_push_be32(mf, ipv6_label, 0); /* Padding for IPv4. */

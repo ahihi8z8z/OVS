@@ -5825,6 +5825,7 @@ reversible_actions(const struct ofpact *ofpacts, size_t ofpacts_len)
         case OFPACT_SET_FIELD:
         case OFPACT_SET_IP_DSCP:
         case OFPACT_SET_IP_ID: // Hai mod
+        case OFPACT_PUSH_TUN_OPT: // Hai mod
         case OFPACT_SET_IP_ECN:
         case OFPACT_SET_IP_TTL:
         case OFPACT_SET_IPV4_DST:
@@ -6149,6 +6150,7 @@ freeze_unroll_actions(const struct ofpact *a, const struct ofpact *end,
         case OFPACT_SET_IPV4_DST:
         case OFPACT_SET_IP_DSCP:
         case OFPACT_SET_IP_ID: // Hai mod
+        case OFPACT_PUSH_TUN_OPT: // Hai mod
         case OFPACT_SET_IP_ECN:
         case OFPACT_SET_IP_TTL:
         case OFPACT_SET_L4_SRC_PORT:
@@ -6947,6 +6949,8 @@ recirc_for_mpls(const struct ofpact *a, struct xlate_ctx *ctx)
     case OFPACT_GOTO_TABLE:
     case OFPACT_CHECK_PKT_LARGER:
     case OFPACT_DELETE_FIELD:
+    case OFPACT_PUSH_TUN_OPT: // Hai mod
+    
     default:
         break;
     }
@@ -7168,6 +7172,16 @@ do_xlate_actions(const struct ofpact *ofpacts, size_t ofpacts_len,
                 WC_MASK_FIELD(wc, nw_proto);
                 wc->masks.nw_id = 0xffff;
                 flow->nw_id = ofpact_get_SET_IP_ID(a)->nw_id;
+            }
+            break;
+        // Hai end mod
+
+        // Hai mod
+        case OFPACT_PUSH_TUN_OPT:
+            if (is_ip_any(flow)) {
+                WC_MASK_FIELD(wc, nw_proto);
+                wc->masks.tun_opt = 0xffffff;
+                flow->tun_opt = ofpact_get_PUSH_TUN_OPT(a)->tun_opt;
             }
             break;
         // Hai end mod

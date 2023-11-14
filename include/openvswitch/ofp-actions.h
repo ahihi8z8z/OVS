@@ -59,7 +59,7 @@ struct vl_mff_map;
  * 4. <NAME>, a quoted string that gives the name of the action, for use in
  *    parsing actions from text.
  */
-// Hai mod. Add SET_IP_ID
+// Hai mod. Add SET_IP_ID. Add PUSH_TUN_OPT
 #define OFPACTS                                                         \
     /* Output. */                                                       \
     OFPACT(OUTPUT,          ofpact_output,      ofpact, "output")       \
@@ -83,6 +83,7 @@ struct vl_mff_map;
     OFPACT(SET_IP_ECN,      ofpact_ecn,         ofpact, "mod_nw_ecn")   \
     OFPACT(SET_IP_TTL,      ofpact_ip_ttl,      ofpact, "mod_nw_ttl")   \
     OFPACT(SET_IP_ID,       ofpact_ip_id,       ofpact, "set_ip_id")    \
+    OFPACT(PUSH_TUN_OPT,    ofpact_push_tun_opt,     ofpact, "push_tun_opt") \
     OFPACT(SET_L4_SRC_PORT, ofpact_l4_port,     ofpact, "mod_tp_src")   \
     OFPACT(SET_L4_DST_PORT, ofpact_l4_port,     ofpact, "mod_tp_dst")   \
     OFPACT(REG_MOVE,        ofpact_reg_move,    ofpact, "move")         \
@@ -510,14 +511,24 @@ struct ofpact_ip_ttl {
     );
 };
 
-/* OFPACT_SET_IP_ID.
+/* OFPACT_PUSH_TUN_OPT.
  *
- * Used for OFPAT_SET_NW_ID. */
+ * Used for OFPAT_PUSH_TUN_OPT. */
 // Hai mod
 struct ofpact_ip_id {
     OFPACT_PADDED_MEMBERS(
         struct ofpact ofpact;
         ovs_be16 nw_id;
+    );
+};
+
+/* OFPACT_POP_MPLS
+ *
+ * Used for NXAST_POP_MPLS, OFPAT11_POP_MPLS.. */
+struct ofpact_push_tun_opt {
+    OFPACT_PADDED_MEMBERS(
+        struct ofpact ofpact;
+        ovs_be32 tun_opt;
     );
 };
 

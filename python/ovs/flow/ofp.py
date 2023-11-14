@@ -294,6 +294,7 @@ class OFPFlow(Flow):
             "set_field": functools.partial(
                 decode_set_field, KVDecoders(OFPFlow._field_decoder_args())
             ),
+            "push_tun_opt": decode_int, # hai mod
             "move": decode_move_field,
             "mod_dl_dst": EthMask,
             "mod_dl_src": EthMask,

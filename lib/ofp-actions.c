@@ -128,6 +128,7 @@ OFP_ASSERT(sizeof(struct ext_action_header) == 16);
  *   - Optional additional text enclosed in square brackets is commentary for
  *     the human reader.
  */
+// Hai checking
 enum ofp_raw_action_type {
 /* ## ----------------- ## */
 /* ## Standard actions. ## */
@@ -369,6 +370,11 @@ enum ofp_raw_action_type {
      * [Hai mod] */
     FILAST_RAW_SET_IP_ID,
 
+    /* FIL1.1+(2): struct fil_action_push_tun_opt.
+     *
+     * [Hai mod] */
+    FILAST_RAW_PUSH_TUN_OPT,
+
 /* ## ------------------ ## */
 /* ## Debugging actions. ## */
 /* ## ------------------ ## */
@@ -473,7 +479,8 @@ ofpact_next_flattened(const struct ofpact *ofpact)
     case OFPACT_SET_IP_DSCP:
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
-    case OFPACT_SET_IP_ID:
+    case OFPACT_SET_IP_ID: // Hai mod
+    case OFPACT_PUSH_TUN_OPT: // Hai mod
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:
@@ -2327,7 +2334,7 @@ encode_SET_IP_ID(const struct ofpact_ip_id *id,
 {
     if (ofp_version < OFP12_VERSION) {
         //put_FILAST_SET_IP_ID(out, id->nw_id);
-        put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
+        // put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
     } else {
         // struct mf_subfield dst = { .field = mf_from_id(MFF_IP_ID),
         //                            .ofs = 0, .n_bits = 16 };
@@ -2362,6 +2369,75 @@ format_SET_IP_ID(const struct ofpact_ip_id *a,
 
 static enum ofperr
 check_SET_IP_ID(const struct ofpact_ip_id *a OVS_UNUSED,
+                 struct ofpact_check_params *cp)
+{
+    return check_set_ip(cp);
+}
+
+/* Hai mod. Push tun_opt ipv4 action. */
+/* Action structure for FILAST_PUSH_TUN_OPT */
+struct fil_action_push_tun_opt {
+    ovs_be16 type;         /* OFPAT_VENDOR. */
+    ovs_be16 len;          /* Total size including any property TLVs. */
+    ovs_be32 vendor;       /* FIL_VENDOR_ID. */
+    ovs_be16 subtype;      /* . */
+    uint8_t pad[2];        /* 2 bytes padding */
+
+    ovs_be32 tun_opt;
+};
+OFP_ASSERT(sizeof(struct fil_action_push_tun_opt) == 16);
+
+static enum ofperr
+decode_FILAST_RAW_PUSH_TUN_OPT(const struct fil_action_push_tun_opt *fpto,
+                              enum ofp_version ofp_version OVS_UNUSED,
+                              struct ofpbuf *out)
+{
+    struct ofpact_push_tun_opt *pto;
+    
+    pto = ofpact_put_PUSH_TUN_OPT(out);
+    pto->tun_opt = ntohl(fpto->tun_opt);
+    return 0;
+}
+
+static void
+encode_PUSH_TUN_OPT(const struct ofpact_push_tun_opt *tun_opt,
+                  enum ofp_version ofp_version OVS_UNUSED, struct ofpbuf *out)
+{
+    if (ofp_version < OFP12_VERSION) {
+        //put_FILAST_SET_IP_ID(out, id->nw_id);
+        // put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
+    } else {
+        struct fil_action_push_tun_opt *fpto = put_FILAST_PUSH_TUN_OPT(out);
+        fpto->tun_opt = htonl(tun_opt->tun_opt);
+    }
+}
+
+static char * OVS_WARN_UNUSED_RESULT
+parse_PUSH_TUN_OPT(char *arg, const struct ofpact_parse_params *pp)
+
+{
+    ovs_be32 tun_opt;
+    char *error;
+
+    error = str_to_u32(arg,&tun_opt);
+    if (error) {
+        return error;
+    }
+
+    ofpact_put_PUSH_TUN_OPT(pp->ofpacts)->tun_opt = tun_opt;
+    return NULL;
+}
+
+static void
+format_PUSH_TUN_OPT(const struct ofpact_push_tun_opt *a,
+                  const struct ofpact_format_params *fp)
+{
+    ds_put_format(fp->s, "%spush_tun_opt:%s%#"PRIx32,
+                  colors.param, colors.end, a->tun_opt);
+}
+
+static enum ofperr
+check_PUSH_TUN_OPT(const struct ofpact_push_tun_opt *a OVS_UNUSED,
                  struct ofpact_check_params *cp)
 {
     return check_set_ip(cp);
@@ -4743,6 +4819,7 @@ check_ENCAP(const struct ofpact_encap *a, struct ofpact_check_params *cp)
     return 0;
 }
 
+
 /* Action structure for NXAST_DECAP */
 struct nx_action_decap {
     ovs_be16 type;         /* OFPAT_VENDOR. */
@@ -8009,6 +8086,7 @@ ofpact_copy(struct ofpbuf *out, const struct ofpact *a)
 
 /* The order in which actions in an action set get executed.  This is only for
  * the actions where only the last instance added is used. */
+// Hai mod
 #define ACTION_SET_ORDER                        \
     SLOT(OFPACT_STRIP_VLAN)                     \
     SLOT(OFPACT_POP_MPLS)                       \
@@ -8018,7 +8096,8 @@ ofpact_copy(struct ofpbuf *out, const struct ofpact *a)
     SLOT(OFPACT_PUSH_VLAN)                      \
     SLOT(OFPACT_DEC_TTL)                        \
     SLOT(OFPACT_DEC_MPLS_TTL)                   \
-    SLOT(OFPACT_DEC_NSH_TTL)
+    SLOT(OFPACT_DEC_NSH_TTL)                    \
+    SLOT(OFPACT_PUSH_TUN_OPT)
 
 /* Priority for "final actions" in an action set.  An action set only gets
  * executed at all if at least one of these actions is present.  If more than
@@ -8287,6 +8366,7 @@ ovs_instruction_type_from_ofpact_type(enum ofpact_type type,
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
     case OFPACT_SET_IP_ID: // Hai mod
+    case OFPACT_PUSH_TUN_OPT: // Hai mod
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:
@@ -9028,6 +9108,7 @@ struct ofpact_map {
     int ofpat;                  /* OFPAT_* number from OpenFlow spec. */
 };
 
+// hai checking
 static const struct ofpact_map *
 get_ofpact_map(enum ofp_version version)
 {
@@ -9096,6 +9177,8 @@ get_ofpact_map(enum ofp_version version)
         { OFPACT_SET_FIELD, 25 },
         /* OF1.3+ OFPAT_PUSH_PBB (26) not supported. */
         /* OF1.3+ OFPAT_POP_PBB (27) not supported. */
+        /* Hai mod*/
+        // { OFPACT_PUSH_TUN_OPT, 28 },
         { 0, -1 },
     };
 
@@ -9193,6 +9276,7 @@ ofpact_outputs_to_port(const struct ofpact *ofpact, ofp_port_t port)
     case OFPACT_SET_IP_ECN:
     case OFPACT_SET_IP_TTL:
     case OFPACT_SET_IP_ID: // Hai mod
+    case OFPACT_PUSH_TUN_OPT: // Hai mod
     case OFPACT_SET_L4_SRC_PORT:
     case OFPACT_SET_L4_DST_PORT:
     case OFPACT_REG_MOVE:
@@ -9736,7 +9820,7 @@ ofpact_decode_raw(enum ofp_version ofp_version,
     if (oah->type == htons(OFPAT_VENDOR)) {
         /* Get vendor. */
         hdrs.vendor = ntohl(oah->vendor);
-        if (hdrs.vendor == NX_VENDOR_ID || hdrs.vendor == ONF_VENDOR_ID) {
+        if (hdrs.vendor == NX_VENDOR_ID || hdrs.vendor == ONF_VENDOR_ID || hdrs.vendor == FIL_VENDOR_ID) {
             /* Get extension subtype. */
             const struct ext_action_header *nah;
 
@@ -9864,6 +9948,7 @@ ofpact_put_raw(struct ofpbuf *buf, enum ofp_version ofp_version,
     case 0:
         break;
 
+    case FIL_VENDOR_ID: // hai mod
     case NX_VENDOR_ID:
     case ONF_VENDOR_ID: {
         struct ext_action_header *nah = (struct ext_action_header *) oah;

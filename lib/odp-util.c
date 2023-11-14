@@ -136,6 +136,7 @@ odp_action_len(uint16_t type)
     case OVS_ACTION_ATTR_SAMPLE: return ATTR_LEN_VARIABLE;
     case OVS_ACTION_ATTR_CT: return ATTR_LEN_VARIABLE;
     case OVS_ACTION_ATTR_CT_CLEAR: return 0;
+    case OVS_ACTION_ATTR_PUSH_TUN_OPT: return sizeof(struct ovs_action_push_tun_opt); // hai mod
     case OVS_ACTION_ATTR_PUSH_ETH: return sizeof(struct ovs_action_push_eth);
     case OVS_ACTION_ATTR_POP_ETH: return 0;
     case OVS_ACTION_ATTR_CLONE: return ATTR_LEN_VARIABLE;
@@ -1195,6 +1196,17 @@ format_odp_action(struct ds *ds, const struct nlattr *a,
         format_odp_key_attr(nl_attr_get(a), NULL, NULL, ds, true);
         ds_put_cstr(ds, ")");
         break;
+    // Hai mod
+    case OVS_ACTION_ATTR_PUSH_TUN_OPT: {
+        const struct ovs_action_push_tun_opt *tun_opt = nl_attr_get(a);
+        // ds_put_format(ds, "push_tun_opt(%#"PRIx32")", ntohl(tun_opt->tun_opt));
+        ds_put_cstr(ds, "push_tun_opt(");
+        if (tun_opt->tun_opt) {
+            ds_put_format(ds, "tun_opt=0x%#"PRIx32"", ntohs(tun_opt->tun_opt));
+        }
+        ds_put_char(ds, ')');
+        break;
+    }
     case OVS_ACTION_ATTR_PUSH_ETH: {
         const struct ovs_action_push_eth *eth = nl_attr_get(a);
         ds_put_format(ds, "push_eth(src="ETH_ADDR_FMT",dst="ETH_ADDR_FMT")",
@@ -1484,6 +1496,21 @@ parse_odp_userspace_action(const char *s, struct ofpbuf *actions)
             goto out;
         }
     }
+// Hai mod
+    {
+        struct ovs_action_push_tun_opt tun_opt;
+        int n1 = -1;
+
+        if (ovs_scan(&s[n],"push_tun_opt(tun_opt=%"SCNi32")%n",&tun_opt.tun_opt,&n1)) {
+
+            nl_msg_put_unspec(actions, OVS_ACTION_ATTR_PUSH_TUN_OPT,
+                              &tun_opt, sizeof tun_opt);
+
+            res = n + n1;
+            goto out;
+        }
+    }
+// Hai end mod.
 
     {
         struct ovs_action_push_eth push;
@@ -7716,6 +7743,7 @@ odp_put_pop_eth_action(struct ofpbuf *odp_actions)
     nl_msg_put_flag(odp_actions, OVS_ACTION_ATTR_POP_ETH);
 }
 
+// Hai checking
 void
 odp_put_push_eth_action(struct ofpbuf *odp_actions,
                         const struct eth_addr *eth_src,
@@ -8335,6 +8363,28 @@ commit_set_nd_extensions_action(const struct flow *flow,
     }
     return 0;
 }
+// Hai mod
+static enum slow_path_reason
+commit_push_tun_opt(const struct flow *flow, struct flow *base,
+                     struct ofpbuf *odp_actions)
+{
+    if (!flow->nw_proto) {
+        return 0;
+    }
+    if ((ntohs(base->dl_type) == ETH_TYPE_IP) &&  &(flow->tun_opt) && flow->tun_opt) {
+        struct ovs_action_push_tun_opt tun_opt;
+
+        memset(&tun_opt, 0, sizeof tun_opt);
+        tun_opt.tun_opt = flow->tun_opt;
+
+        nl_msg_put_unspec(odp_actions, OVS_ACTION_ATTR_PUSH_TUN_OPT,
+                        &tun_opt, sizeof tun_opt);
+
+        base->tun_opt = flow->tun_opt;
+        return SLOW_ACTION;
+    }
+    return 0;
+}
 
 static enum slow_path_reason
 commit_set_nw_action(const struct flow *flow, struct flow *base,
@@ -8756,6 +8806,7 @@ commit_odp_actions(const struct flow *flow, struct flow *base,
     BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
 
     enum slow_path_reason slow1, slow2;
+    enum slow_path_reason slow3; // hai mod
     bool mpls_done = false;
 
     commit_encap_decap_action(flow, base, odp_actions, wc,
@@ -8769,6 +8820,11 @@ commit_odp_actions(const struct flow *flow, struct flow *base,
     }
     commit_set_nsh_action(flow, base, odp_actions, wc, use_masked);
     slow1 = commit_set_nw_action(flow, base, odp_actions, wc, use_masked);
+
+    // hai mod
+    slow3 = commit_push_tun_opt(flow,base,odp_actions);
+    slow1 |= slow3;
+    
     commit_set_port_action(flow, base, odp_actions, wc, use_masked);
     slow2 = commit_set_icmp_action(flow, base, odp_actions, wc);
     if (!mpls_done) {

@@ -1269,6 +1269,7 @@ dpif_execute_helper_cb(void *aux_, struct dp_packet_batch *packets_,
     case OVS_ACTION_ATTR_SET_MASKED:
     case OVS_ACTION_ATTR_SAMPLE:
     case OVS_ACTION_ATTR_TRUNC:
+    case OVS_ACTION_ATTR_PUSH_TUN_OPT: // hai mod
     case OVS_ACTION_ATTR_PUSH_ETH:
     case OVS_ACTION_ATTR_POP_ETH:
     case OVS_ACTION_ATTR_CLONE:

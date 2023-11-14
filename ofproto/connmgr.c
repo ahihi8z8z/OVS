@@ -358,7 +358,7 @@ connmgr_run(struct connmgr *mgr,
     ofmonitor_run(mgr);
 
     /* Fail-open maintenance.  Do this after processing the ofconns since
-     * fail-open checks the status of the controller rconn. */
+     * fail-open checksìno lo the status of the controller rconn. */
     if (mgr->fail_open) {
         fail_open_run(mgr->fail_open);
     }

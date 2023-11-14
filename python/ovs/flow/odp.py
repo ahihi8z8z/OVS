@@ -257,6 +257,13 @@ class ODPFlow(Flow):
                         "userdata": decode_default,
                         "actions": decode_flag,
                         "tunnel_out_port": decode_default,
+                        "push_tun_opt": nested_kv_decoder(
+                            KVDecoders(
+                                {
+                                    "tun_opt": decode_int,
+                                }
+                            )
+                        ), # Hai mod
                         "push_eth": nested_kv_decoder(
                             KVDecoders(
                                 {
