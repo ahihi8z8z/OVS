@@ -1199,11 +1199,8 @@ format_odp_action(struct ds *ds, const struct nlattr *a,
     // Hai mod
     case OVS_ACTION_ATTR_PUSH_TUN_OPT: {
         const struct ovs_action_push_tun_opt *tun_opt = nl_attr_get(a);
-        // ds_put_format(ds, "push_tun_opt(%#"PRIx32")", ntohl(tun_opt->tun_opt));
         ds_put_cstr(ds, "push_tun_opt(");
-        if (tun_opt->tun_opt) {
-            ds_put_format(ds, "tun_opt=0x%#"PRIx32"", ntohs(tun_opt->tun_opt));
-        }
+        ds_put_format(ds, "tun_opt=0x%#"PRIx32"", ntohl(tun_opt->tun_opt));
         ds_put_char(ds, ')');
         break;
     }
@@ -1496,21 +1493,6 @@ parse_odp_userspace_action(const char *s, struct ofpbuf *actions)
             goto out;
         }
     }
-// Hai mod
-    {
-        struct ovs_action_push_tun_opt tun_opt;
-        int n1 = -1;
-
-        if (ovs_scan(&s[n],"push_tun_opt(tun_opt=%"SCNi32")%n",&tun_opt.tun_opt,&n1)) {
-
-            nl_msg_put_unspec(actions, OVS_ACTION_ATTR_PUSH_TUN_OPT,
-                              &tun_opt, sizeof tun_opt);
-
-            res = n + n1;
-            goto out;
-        }
-    }
-// Hai end mod.
 
     {
         struct ovs_action_push_eth push;
@@ -2569,6 +2551,20 @@ parse_odp_action__(struct parse_odp_context *context, const char *s,
             return n;
         }
     }
+    // Hai mod
+    {
+        struct ovs_action_push_tun_opt tun_opt;
+        int n = -1;
+
+        if (ovs_scan(s,"push_tun_opt(tun_opt=%"SCNx32")%n",&tun_opt.tun_opt,&n)) {
+
+            nl_msg_put_unspec(actions, OVS_ACTION_ATTR_PUSH_TUN_OPT,
+                              &tun_opt, sizeof tun_opt);
+
+            return n;
+        }
+    }
+    // Hai end mod.
 
     {
         if (!strncmp(s, "ct_clear", 8)) {
@@ -4328,8 +4324,6 @@ format_odp_key_attr__(const struct nlattr *a, const struct nlattr *ma,
         const struct ovs_key_ipv4 *key = nl_attr_get(a);
         const struct ovs_key_ipv4 *mask = ma ? nl_attr_get(ma) : NULL;
 
-        // bool first = true;
-        // format_be32_masked(ds, &first, "tun_opt", key->tun_opt, OVS_BE32_MAX); // hai mod
         format_ipv4(ds, "src", key->ipv4_src, MASK(mask, ipv4_src), verbose);
         format_ipv4(ds, "dst", key->ipv4_dst, MASK(mask, ipv4_dst), verbose);
         format_u8u(ds, "proto", key->ipv4_proto, MASK(mask, ipv4_proto),
@@ -5975,7 +5969,6 @@ parse_odp_key_mask_attr__(struct parse_odp_context *context, const char *s,
     } SCAN_END_ARRAY(OVS_KEY_ATTR_MPLS);
 
     SCAN_BEGIN("ipv4(", struct ovs_key_ipv4) {
-        // SCAN_FIELD("tun_opt=", ipv4, tun_opt); // hai mod
         SCAN_FIELD("src=", ipv4, ipv4_src);
         SCAN_FIELD("dst=", ipv4, ipv4_dst);
         SCAN_FIELD("proto=", u8, ipv4_proto);
@@ -7743,7 +7736,7 @@ odp_put_pop_eth_action(struct ofpbuf *odp_actions)
     nl_msg_put_flag(odp_actions, OVS_ACTION_ATTR_POP_ETH);
 }
 
-// Hai checking
+
 void
 odp_put_push_eth_action(struct ofpbuf *odp_actions,
                         const struct eth_addr *eth_src,
@@ -8070,7 +8063,6 @@ commit_mpls_action(const struct flow *flow, struct flow *base,
 static void
 get_ipv4_key(const struct flow *flow, struct ovs_key_ipv4 *ipv4, bool is_mask)
 {
-    // ipv4->tun_opt = flow->tun_opt; // hai mod
     ipv4->ipv4_src = flow->nw_src;
     ipv4->ipv4_dst = flow->nw_dst;
     ipv4->ipv4_proto = flow->nw_proto;
@@ -8082,7 +8074,6 @@ get_ipv4_key(const struct flow *flow, struct ovs_key_ipv4 *ipv4, bool is_mask)
 static void
 put_ipv4_key(const struct ovs_key_ipv4 *ipv4, struct flow *flow, bool is_mask)
 {
-    // flow->tun_opt = ipv4->tun_opt; // hai mod
     flow->nw_src = ipv4->ipv4_src;
     flow->nw_dst = ipv4->ipv4_dst;
     flow->nw_proto = ipv4->ipv4_proto;
@@ -8368,14 +8359,13 @@ static enum slow_path_reason
 commit_push_tun_opt(const struct flow *flow, struct flow *base,
                      struct ofpbuf *odp_actions)
 {
-    if (!flow->nw_proto) {
-        return 0;
-    }
-    if ((ntohs(base->dl_type) == ETH_TYPE_IP) &&  &(flow->tun_opt) && flow->tun_opt) {
+    if ((ntohs(base->dl_type) == ETH_TYPE_IP) && flow->tun_opt) {
         struct ovs_action_push_tun_opt tun_opt;
 
         memset(&tun_opt, 0, sizeof tun_opt);
-        tun_opt.tun_opt = flow->tun_opt;
+        if (&flow->tun_opt) {
+            tun_opt.tun_opt = flow->tun_opt;
+        }
 
         nl_msg_put_unspec(odp_actions, OVS_ACTION_ATTR_PUSH_TUN_OPT,
                         &tun_opt, sizeof tun_opt);

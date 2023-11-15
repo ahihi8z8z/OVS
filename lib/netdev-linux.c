@@ -1379,7 +1379,7 @@ netdev_linux_batch_rxq_recv_sock(struct netdev_rxq_linux *rx, int mtu,
 
                 eth_push_vlan(pkt,
                               auxdata_to_vlan_tpid(aux, double_tagged),
-                              htons(aux->tp_vlan_tci)); // Hai checking.
+                              htons(aux->tp_vlan_tci)); 
                 break;
             }
         }
