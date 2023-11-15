@@ -426,6 +426,15 @@ dp_packet_l3(const struct dp_packet *b)
            : NULL;
 }
 
+// hai mod
+static inline void *
+dp_packet_opt(const struct dp_packet *b)
+{
+    return b->l3_ofs != UINT16_MAX
+           ? (char *) dp_packet_data(b) + b->l3_ofs + IP_HEADER_LEN
+           : NULL;
+}
+
 static inline void
 dp_packet_set_l3(struct dp_packet *b, void *l3)
 {
