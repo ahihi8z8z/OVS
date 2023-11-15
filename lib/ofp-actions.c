@@ -128,7 +128,7 @@ OFP_ASSERT(sizeof(struct ext_action_header) == 16);
  *   - Optional additional text enclosed in square brackets is commentary for
  *     the human reader.
  */
-// Hai checking
+
 enum ofp_raw_action_type {
 /* ## ----------------- ## */
 /* ## Standard actions. ## */
@@ -370,7 +370,7 @@ enum ofp_raw_action_type {
      * [Hai mod] */
     FILAST_RAW_SET_IP_ID,
 
-    /* FIL1.1+(2): struct fil_action_push_tun_opt.
+    /* FIL1.0+(2): struct fil_action_push_tun_opt.
      *
      * [Hai mod] */
     FILAST_RAW_PUSH_TUN_OPT,
@@ -2380,7 +2380,7 @@ struct fil_action_push_tun_opt {
     ovs_be16 type;         /* OFPAT_VENDOR. */
     ovs_be16 len;          /* Total size including any property TLVs. */
     ovs_be32 vendor;       /* FIL_VENDOR_ID. */
-    ovs_be16 subtype;      /* . */
+    ovs_be16 subtype;      /* FILAST_PUSH_TUN_OPT. */
     uint8_t pad[2];        /* 2 bytes padding */
 
     ovs_be32 tun_opt;
@@ -2403,28 +2403,22 @@ static void
 encode_PUSH_TUN_OPT(const struct ofpact_push_tun_opt *tun_opt,
                   enum ofp_version ofp_version OVS_UNUSED, struct ofpbuf *out)
 {
-    if (ofp_version < OFP12_VERSION) {
-        //put_FILAST_SET_IP_ID(out, id->nw_id);
-        // put_set_field(out,ofp_version,MFF_IP_ID,id->nw_id);
-    } else {
         struct fil_action_push_tun_opt *fpto = put_FILAST_PUSH_TUN_OPT(out);
         fpto->tun_opt = htonl(tun_opt->tun_opt);
-    }
 }
 
 static char * OVS_WARN_UNUSED_RESULT
 parse_PUSH_TUN_OPT(char *arg, const struct ofpact_parse_params *pp)
 
 {
-    ovs_be32 tun_opt;
+    struct ofpact_push_tun_opt *tun_opt = ofpact_put_PUSH_TUN_OPT(pp->ofpacts);
     char *error;
 
-    error = str_to_u32(arg,&tun_opt);
+    error = str_to_u32(arg, &tun_opt->tun_opt);
     if (error) {
         return error;
     }
 
-    ofpact_put_PUSH_TUN_OPT(pp->ofpacts)->tun_opt = tun_opt;
     return NULL;
 }
 
@@ -2440,7 +2434,13 @@ static enum ofperr
 check_PUSH_TUN_OPT(const struct ofpact_push_tun_opt *a OVS_UNUSED,
                  struct ofpact_check_params *cp)
 {
-    return check_set_ip(cp);
+    
+    int err = check_set_ip(cp);
+    if (!err) {
+        struct flow *flow = &cp->match->flow; 
+        flow->tun_opt = a->tun_opt;
+    }
+    return err;
 }
 // Hai end mod.
 
@@ -9108,7 +9108,7 @@ struct ofpact_map {
     int ofpat;                  /* OFPAT_* number from OpenFlow spec. */
 };
 
-// hai checking
+
 static const struct ofpact_map *
 get_ofpact_map(enum ofp_version version)
 {
