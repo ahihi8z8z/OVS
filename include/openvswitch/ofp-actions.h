@@ -511,9 +511,9 @@ struct ofpact_ip_ttl {
     );
 };
 
-/* OFPACT_PUSH_TUN_OPT.
+/* OFPACT_SET_IP_ID.
  *
- * Used for OFPAT_PUSH_TUN_OPT. */
+ * Used for FILAST_SET_IP_ID. */
 // Hai mod
 struct ofpact_ip_id {
     OFPACT_PADDED_MEMBERS(
@@ -522,9 +522,9 @@ struct ofpact_ip_id {
     );
 };
 
-/* OFPACT_POP_MPLS
+/* OFPACT_PUSH_TUN_OPT
  *
- * Used for NXAST_POP_MPLS, OFPAT11_POP_MPLS.. */
+ * Used for FILAST_PUSH_TUN_OPT*/
 struct ofpact_push_tun_opt {
     OFPACT_PADDED_MEMBERS(
         struct ofpact ofpact;
