@@ -147,11 +147,6 @@ odp_set_ipv4(struct dp_packet *packet, const struct ovs_key_ipv4 *key,
     uint8_t new_tos;
     uint8_t new_ttl;
 
-    // // Hai mod
-    // if (mask->tun_opt) {
-    //     packet_set_ipv4_tun_opt(packet,key->tun_opt);
-    // }
-
     if (mask->ipv4_src) {
         ip_src_nh = get_16aligned_be32(&nh->ip_src);
         new_ip_src = key->ipv4_src | (ip_src_nh & ~mask->ipv4_src);
@@ -463,7 +458,6 @@ odp_execute_set_action(struct dp_packet *packet, const struct nlattr *a)
         packet_set_ipv4(packet, ipv4_key->ipv4_src,
                         ipv4_key->ipv4_dst, ipv4_key->ipv4_tos,
                         ipv4_key->ipv4_ttl);
-        // packet_set_ipv4_tun_opt(packet,ipv4_key->tun_opt);
         break;
 
     case OVS_KEY_ATTR_IPV6:
@@ -820,7 +814,7 @@ requires_datapath_assistance(const struct nlattr *a)
     case OVS_ACTION_ATTR_PUSH_MPLS:
     case OVS_ACTION_ATTR_POP_MPLS:
     case OVS_ACTION_ATTR_TRUNC:
-    case OVS_ACTION_ATTR_PUSH_TUN_OPT: // hai mod
+    case OVS_ACTION_ATTR_PUSH_TUN_OPT: // hai mod. Don't need datapath's help.
     case OVS_ACTION_ATTR_PUSH_ETH:
     case OVS_ACTION_ATTR_POP_ETH:
     case OVS_ACTION_ATTR_CLONE:
@@ -977,6 +971,7 @@ odp_execute_init(void)
  * by the code that does this removal, irrespective of the value of 'steal'.
  * Otherwise, if the packet is not removed from the batch and 'steal' is false
  * then the packet could either be cloned or not. */
+
 void
 odp_execute_actions(void *dp, struct dp_packet_batch *batch, bool steal,
                     const struct nlattr *actions, size_t actions_len,
@@ -1028,7 +1023,6 @@ odp_execute_actions(void *dp, struct dp_packet_batch *batch, bool steal,
 
         /* If the action was not handled by the active function pointers above,
          * process them by switching on the type below. */
-
         switch (attr_type) {
         case OVS_ACTION_ATTR_HASH: {
             const struct ovs_action_hash *hash_act = nl_attr_get(a);
@@ -1138,7 +1132,9 @@ odp_execute_actions(void *dp, struct dp_packet_batch *batch, bool steal,
             const struct ovs_action_push_tun_opt *tun_opt = nl_attr_get(a);
 
             DP_PACKET_BATCH_FOR_EACH (i, packet, batch) {
-                packet_set_ipv4_tun_opt(packet,tun_opt->tun_opt);
+                if (tun_opt->tun_opt) {
+                    packet_set_ipv4_tun_opt(packet,tun_opt->tun_opt);
+                }
             }
             break;
         }
